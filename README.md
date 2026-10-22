@@ -25,7 +25,7 @@ This system manages thesis defense schedules and automatically assigns panelists
 - 📅 **Schedule Management** — create and manage thesis defense schedules with conflict checking
 - 🧠 **Expertise-Based Panel Assignment** — semantic matching of thesis titles to panelist expertise
 - 🔔 **Notifications** — automatic alerts for schedules and panel assignments
-- 🔐 **Role-Based Access Control (RBAC)** — separate access for admins, panelists, and students
+- 🔐 **Role-Based Access Control (RBAC)** — separate access for admins and students
 - 🤖 **AI Integration** — Google Gemini API for both AI features and text embeddings
 
 ---
