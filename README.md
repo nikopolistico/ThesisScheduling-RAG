@@ -10,8 +10,8 @@ BSIT Capstone Project · College of Computing and Information Sciences (CCIS) ·
 ![Vue.js](https://img.shields.io/badge/Vue.js-4FC08D?style=for-the-badge&logo=vuedotjs&logoColor=white)
 ![Supabase](https://img.shields.io/badge/Supabase-3FCF8E?style=for-the-badge&logo=supabase&logoColor=white)
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-4169E1?style=for-the-badge&logo=postgresql&logoColor=white)
-![Groq](https://img.shields.io/badge/Groq-F55036?style=for-the-badge&logoColor=white)
-![Hugging Face](https://img.shields.io/badge/Hugging%20Face-FFD21E?style=for-the-badge&logo=huggingface&logoColor=black)
+![Google Gemini](https://img.shields.io/badge/Google%20Gemini-8E75B2?style=for-the-badge&logo=googlegemini&logoColor=white)
+![Vercel](https://img.shields.io/badge/Vercel-000000?style=for-the-badge&logo=vercel&logoColor=white)
 
 </div>
 
@@ -27,7 +27,7 @@ This system manages thesis defense schedules and automatically assigns panelists
 - 🧠 **Expertise-Based Panel Assignment** — semantic matching of thesis titles to panelist expertise
 - 🔔 **Notifications** — automatic alerts for schedules and panel assignments
 - 🔐 **Role-Based Access Control (RBAC)** — separate access for admins, panelists, and students
-- 🤖 **AI Integration** — Groq (`llama-3.3-70b-versatile`) for AI features, Hugging Face for embeddings
+- 🤖 **AI Integration** — Google Gemini API for both AI features and text embeddings
 
 ---
 
@@ -38,8 +38,9 @@ This system manages thesis defense schedules and automatically assigns panelists
 | 🖥️ Frontend | Nuxt + Nuxt Content |
 | 🗄️ Backend / Database | Supabase (PostgreSQL) |
 | 🔑 Authentication | PostgreSQL functions with `pgcrypto` (bcrypt) |
-| 🤖 AI / LLM | Groq API (OpenAI-compatible SDK) |
-| 🧬 Embeddings | Hugging Face Inference API |
+| 🤖 AI / LLM | Google Gemini API |
+| 🧬 Embeddings | Google Gemini Embeddings |
+| ▲ Hosting | Vercel |
 
 ---
 
@@ -51,7 +52,8 @@ Make sure these are installed before you start:
 - 📦 A package manager: **npm** (comes with Node), **pnpm**, **yarn**, or **bun**
 - 🌿 [Git](https://git-scm.com/)
 - ☁️ A [Supabase](https://supabase.com/) project
-- 🔑 API keys for [Groq](https://console.groq.com/) and [Hugging Face](https://huggingface.co/settings/tokens)
+- 🔑 A [Google Gemini API key](https://aistudio.google.com/apikey) from Google AI Studio
+- ▲ A [Vercel](https://vercel.com/) account (for deployment)
 
 ---
 
@@ -91,15 +93,12 @@ Create a `.env` file in the project root:
 SUPABASE_URL=https://your-project-id.supabase.co
 SUPABASE_KEY=your-supabase-anon-key
 
-# Groq — https://console.groq.com/keys
-GROQ_API_KEY=your-groq-api-key
-
-# Hugging Face — https://huggingface.co/settings/tokens
-HF_API_TOKEN=your-huggingface-token
+# Google Gemini — https://aistudio.google.com/apikey
+GEMINI_API_KEY=your-gemini-api-key
 ```
 
 > ⚠️ **Never commit your `.env` file.** Make sure `.env` is listed in `.gitignore`.
-> Only use the **anon** key on the client. The **service role** key must stay on the server and must never be shared publicly.
+> Only use the **anon** key on the client. The **service role** key and the **Gemini API key** must stay on the server (e.g. in `server/api/` routes) and must never be exposed to the browser.
 
 > 💡 Adjust the variable names if your `nuxt.config.ts` expects different ones.
 
@@ -165,9 +164,50 @@ yarn preview
 bun run preview
 ```
 
-### 🌐 Deploy
+---
 
-See the [Nuxt deployment documentation](https://nuxt.com/docs/getting-started/deployment) for hosting options. Remember to add your environment variables to your hosting provider's settings.
+## ▲ Deploying to Vercel
+
+Vercel auto-detects Nuxt, so no extra config file is needed.
+
+### Option A — Deploy from GitHub (recommended)
+
+1. 📤 Push your project to GitHub.
+2. 🔗 Go to [vercel.com/new](https://vercel.com/new) and **Import** your repository.
+3. ⚙️ Vercel detects **Nuxt** as the framework preset. Leave the build settings as default:
+   - Build Command: `npm run build`
+   - Output Directory: *(leave default)*
+   - Install Command: `npm install`
+4. 🔑 Open **Environment Variables** and add the same values from your `.env`:
+   - `SUPABASE_URL`
+   - `SUPABASE_KEY`
+   - `GEMINI_API_KEY`
+5. 🚀 Click **Deploy**.
+
+After this, every push to the `main` branch redeploys automatically, and other branches get preview URLs.
+
+### Option B — Deploy with the Vercel CLI
+
+```bash
+# install the CLI
+npm install -g vercel
+
+# log in and link the project
+vercel login
+vercel
+
+# deploy to production
+vercel --prod
+```
+
+Add environment variables with `vercel env add <NAME>` or in the Vercel dashboard under **Project → Settings → Environment Variables**.
+
+### 🔐 After deploying
+
+- In Supabase, go to **Authentication → URL Configuration** and add your Vercel URL (e.g. `https://your-app.vercel.app`) to **Site URL** / **Redirect URLs** so login redirects work.
+- If you change environment variables in Vercel, **redeploy** for the changes to take effect.
+
+> 📘 More details: [Nuxt on Vercel](https://vercel.com/docs/frameworks/nuxt)
 
 ---
 
@@ -206,8 +246,17 @@ Or run on another port: `npm run dev -- --port 3001`
 <details>
 <summary>❌ <b>AI requests failing or rate-limited</b></summary>
 
-- Confirm `GROQ_API_KEY` is valid.
-- Groq's free tier has limits (around 30 requests/minute and 1,000/day). Wait and retry, or switch to a backup provider such as OpenRouter.
+- Confirm `GEMINI_API_KEY` is valid in Google AI Studio.
+- The Gemini free tier has per-minute and per-day request limits. If you get a `429` error, wait and retry.
+
+</details>
+
+<details>
+<summary>❌ <b>Works locally but fails on Vercel</b></summary>
+
+- Check that all environment variables are added in Vercel and redeploy.
+- Open **Vercel → Project → Deployments → Logs** to see the build or runtime error.
+- Make sure your Vercel URL is added in Supabase's **Redirect URLs**.
 
 </details>
 
@@ -256,7 +305,8 @@ npm install
 - 📘 [Nuxt Documentation](https://nuxt.com/docs)
 - 📗 [Nuxt Content Documentation](https://content.nuxt.com)
 - 📙 [Supabase Documentation](https://supabase.com/docs)
-- 📕 [Groq API Documentation](https://console.groq.com/docs)
+- 📕 [Gemini API Documentation](https://ai.google.dev/gemini-api/docs)
+- 📓 [Vercel Nuxt Documentation](https://vercel.com/docs/frameworks/nuxt)
 
 ---
 
